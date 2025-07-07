@@ -1,0 +1,12 @@
+# Compiled numpy arrays
+*.npy
+
+# Data files containing scaling parameters
+X_scaling.dat
+Y_scaling.dat
+
+# All generated plots
+*.png
+
+# Compiling this is a work in progress; will update later
+official_results/
