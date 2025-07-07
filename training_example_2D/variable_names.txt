@@ -1,0 +1,8 @@
+mobility
+chi0
+DOSpeak
+DonorConc
+DonorEmid
+DonorEsig
+bandtailconc
+bandtailwidth
