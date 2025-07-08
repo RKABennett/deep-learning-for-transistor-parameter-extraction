@@ -11,9 +11,9 @@ For full details and results, please see the following prepreint:
 R.K.A. Bennett, J.L. Uslu, H.F. Gault, L. Hoang, A.I. Khan, L. Hoang, T. Pena,
 K. Neilson, Y.S. Song, Z. Zhang, A.J. Mannix, E. Pop, "Deep Learning to Automate 
 Parameter Extraction and Model Fitting of Two-Dimensional Transistors," arXiv,
-2025. DOI: TBA.
+2025. doi:10.48550/arXiv.2507.05134.
 
-The preprint is available at TBA.
+The preprint is available at https://arxiv.org/abs/2507.05134
 
 <!-- GETTING STARTED -->
 ## Getting Started
