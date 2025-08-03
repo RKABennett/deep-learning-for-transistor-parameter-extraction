@@ -1,0 +1,75 @@
+experiment:
+  name: "2d_transistor_param_extraction"
+  version: "v1.0"
+  description: "Deep learning for 2D transistor parameter extraction"
+
+data:
+  raw_data_path: "data/raw/data.zip"
+  processed_data_path: "data/processed/"
+  scaling_files:
+    x_scaling: "data/processed/Xscaling.dat"
+    y_scaling: "data/processed/Yscaling.dat"
+  variable_names: "data/processed/variable_names.txt"
+
+model:
+  forward:
+    architecture: "dense"
+    hidden_layers: [128, 64, 32]
+    activation: "relu"
+    dropout_rate: 0.2
+    batch_normalization: true
+  
+  inverse:
+    architecture: "dense"
+    hidden_layers: [256, 128, 64, 32]
+    activation: "relu"
+    dropout_rate: 0.2
+    batch_normalization: true
+    pretrain_epochs: 100
+    finetune_epochs: 200
+
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  optimizer: "adam"
+  loss_function: "mse"
+  metrics: ["mae", "mse"]
+  validation_split: 0.2
+  early_stopping:
+    patience: 20
+    monitor: "val_loss"
+    restore_best_weights: true
+  
+  callbacks:
+    reduce_lr_on_plateau:
+      factor: 0.5
+      patience: 10
+      min_lr: 1e-7
+    
+    model_checkpoint:
+      save_best_only: true
+      monitor: "val_loss"
+
+paths:
+  models:
+    forward: "models/trained/NN_forward.keras"
+    forward_fully_trained: "models/trained/NN_forward_fully_trained.keras"
+    inverse: "models/trained/NN_inverse.keras"
+    inverse_pretrain: "models/trained/NN_inverse_pretrain.keras"
+    inverse_pretrain_final: "models/trained/NN_inverse_pretrain_final.keras"
+  
+  results:
+    plots: "results/plots/"
+    metrics: "results/metrics/"
+    errors: "results/metrics/errors.dat"
+
+device:
+  use_gpu: true
+  gpu_memory_limit: null  # null for no limit, integer for MB limit
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/training.log"
+
+random_seed: 42

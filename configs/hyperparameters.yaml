@@ -1,0 +1,30 @@
+hyperparameter_search:
+  method: "grid_search"  # options: grid_search, random_search, bayesian
+  
+  parameters:
+    batch_size: [16, 32, 64]
+    learning_rate: [0.0001, 0.001, 0.01]
+    
+    forward_model:
+      hidden_layers:
+        - [64, 32]
+        - [128, 64, 32]
+        - [256, 128, 64]
+      dropout_rate: [0.1, 0.2, 0.3]
+    
+    inverse_model:
+      hidden_layers:
+        - [128, 64, 32]
+        - [256, 128, 64, 32]
+        - [512, 256, 128, 64]
+      dropout_rate: [0.1, 0.2, 0.3]
+      pretrain_epochs: [50, 100, 150]
+
+  evaluation:
+    metric: "val_loss"
+    direction: "minimize"
+    cross_validation_folds: 5
+
+  search_budget:
+    max_trials: 50
+    max_time_hours: 24

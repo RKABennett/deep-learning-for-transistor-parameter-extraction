@@ -18,12 +18,76 @@ The preprint is available at https://arxiv.org/abs/2507.05134
 <!-- GETTING STARTED -->
 ## Getting Started
 
-We provide a simple example for training and testing a neural network for 
-parameter extraction of 2D traininstors in the training_example_2D_FET 
-directory. We also provide an example for high-electron-mobility transistors
-in the training_example_HEMT directory [not yet added; work in progress].
+### Installation
 
-See the README.md files within these directory for specific usage details.
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/deep-learning-for-transistor-parameter-extraction.git
+cd deep-learning-for-transistor-parameter-extraction
+```
+
+2. Create and activate a conda environment:
+```bash
+conda env create -f environment.yml
+conda activate transistor-param-extraction
+```
+
+3. Install the package in development mode:
+```bash
+pip install -e .
+```
+
+### Project Structure
+
+```
+├── src/                          # Source code
+│   └── transistor_param_extraction/
+│       ├── NN_fns.py            # Neural network functions
+│       ├── NN_variables.py      # Configuration variables
+│       └── cli.py               # Command line interface
+├── experiments/                  # Experimental configurations
+│   └── 2d_transistor/           # 2D transistor experiment
+├── data/                        # Data storage
+│   ├── raw/                     # Raw datasets
+│   └── processed/               # Processed datasets
+├── models/                      # Trained models
+│   └── trained/                 # Production models
+├── results/                     # Experimental results
+│   ├── plots/                   # Generated plots
+│   └── metrics/                 # Performance metrics
+├── configs/                     # Configuration files
+├── tests/                       # Unit tests
+└── notebooks/                   # Jupyter notebooks
+```
+
+### Quick Start
+
+1. **Train the models:**
+```bash
+transistor-train --experiment 2d_transistor
+```
+
+2. **Test the forward model:**
+```bash
+transistor-test --model-type forward --experiment 2d_transistor
+```
+
+3. **Test the inverse model:**
+```bash
+transistor-test --model-type inverse --experiment 2d_transistor
+```
+
+### Manual Training (Alternative)
+
+Navigate to the experiment directory and run scripts in order:
+
+```bash
+cd experiments/2d_transistor
+python process_data.py
+python train_model.py
+python test_forward_0_save-fits.py
+python test_forward_1_plot-fits.py
+```
 
 <!-- REQUIREMENTS -->
 ### Requirements
