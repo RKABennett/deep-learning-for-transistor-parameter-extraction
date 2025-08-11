@@ -1,0 +1,44 @@
+{
+  "data": {
+    "num_params": 8,
+    "simtype": "sentaurus",
+    "n_points": 32,
+    "num_IdVg": 2,
+    "num_feats": 4,
+    "Vmin": -5.9,
+    "Vmax": 49.9,
+    "minval": 5e-11,
+    "Xscaling_name": "Xscaling.dat",
+    "Yscaling_name": "Yscaling.dat",
+    "N_test": 1000
+  },
+  "forward_model": {
+    "lr0_forward": 1e-3,
+    "ar_forward": 0.35,
+    "N_anneals_forward": 4,
+    "patience_forward": 50,
+    "bs_forward": 128
+  },
+  "inverse_training": {
+    "lr0_inverse": 1e-3,
+    "ar_inverse": 0.8,
+    "N_anneals_inverse": 10,
+    "patience_inverse": 40,
+    "bs_inverse": 256
+  },
+  "inverse_pretraining": {
+    "lr0_inverse_pre": 2.5e-4,
+    "ar_inverse_pre": 0.6,
+    "N_anneals_inverse_pre": 2,
+    "patience_inverse_pre": 5,
+    "bs_inverse_pre": 256
+  },
+  "inverse_finetuning": {
+    "lr0_inverse_ft": 2e-5,
+    "ar_inverse_ft": 0.9,
+    "N_anneals_inverse_ft": 3,
+    "patience_inverse_ft": 40,
+    "bs_inverse_ft": 256
+  }
+}
+
