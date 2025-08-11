@@ -1,12 +1,32 @@
-# Compiled numpy arrays
+# compiled numpy arrays
 *.npy
 
-# Data files containing scaling parameters
+# data files containing scaling parameters
 X_scaling.dat
 Y_scaling.dat
 
-# All generated plots
+# all generated plots
 *.png
 
-# Compiling this is a work in progress; will update later
+# processed data
+data/processed
+
+# pycache
+__pycache__/
+
+# all .egg-info files
+*.egg-info/
+
+# compiling this is a work in progress; will update later
 official_results/
+
+# all trained models except for ones in ./models
+*.keras
+!models/*.keras
+
+# all results folders
+demo/test_forward/forward_results
+demo/test_inverse/inverse_results
+
+# virtual environment
+venv/
