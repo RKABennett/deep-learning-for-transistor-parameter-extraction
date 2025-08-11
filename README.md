@@ -39,11 +39,11 @@ venv\Scripts\activate      # On Windows
 ## Repository layout
 Key files directories of this project are:
 
-[config.json](./config.json) -- A config file where key variables are defined.
-[data](./data)    -- Sentaurus simulation data from our preprint.
-[demo](./demo)    -- A training example using data from our preprint.
-[models](./models)  -- Sample pretrained models.
-[src](./src)     -- Core code for this project.
+- [config.json](./config.json) -- A config file where key variables are defined.
+- [data](./data)    -- Sentaurus simulation data from our preprint.
+- [demo](./demo)    -- A training example using data from our preprint.
+- [models](./models)  -- Sample pretrained models.
+- [src](./src)     -- Core code for this project.
 
 
 <!-- GETTING STARTED -->
