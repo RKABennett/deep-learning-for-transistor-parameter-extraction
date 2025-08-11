@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "transistor-extract"
+version = "1.0.1"
+description = "Tools for training and evaluating neural networks for transistor parameter extraction"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Your Name", email = "you@example.com"}]
+
+dependencies = [
+    "numpy>=1.23",
+    "pandas",
+    "scipy",
+    "matplotlib",
+    "scikit-learn",
+    "tensorflow",       
+    "openpyxl",        
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
