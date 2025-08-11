@@ -11,8 +11,9 @@ Y_scaling.dat
 # processed data
 data/processed
 
-# pycache
+# pycache and swp
 __pycache__/
+*.swp
 
 # all .egg-info files
 *.egg-info/
@@ -30,3 +31,4 @@ demo/test_inverse/inverse_results
 
 # virtual environment
 venv/
+

@@ -1,5 +1,3 @@
-# src/yourpkg/__init__.py
-
 from .utils_training import (
     train_inverse_NN,
     train_forward_NN,

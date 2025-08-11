@@ -1,7 +1,0 @@
-numpy>=1.23
-pandas
-scipy
-matplotlib
-scikit-learn
-tensorflow
-openpyxl
