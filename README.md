@@ -9,22 +9,11 @@ For full details and results, please see the preprint, available at
 [https://arxiv.org/abs/2507.05134](https://arxiv.org/abs/2507.05134).
 
 ## Updates
-2025 July 07 -- Our GitHub is live!
-2025 July 07 -- Our [arXiv preprint](https://arxiv.org/abs/2507.05134) is live!
+- 2025 July 07 -- Our GitHub is live!
+- 2025 July 07 -- Our [arXiv preprint](https://arxiv.org/abs/2507.05134) is live!
 
 ## Installation
 
-To install the required dependencies, do:  
-
-```bash
-pip install -r requirements.txt
-```
-
-To install this package: 
-
-```bash
-pip install -e .
-```
 To create and activate a virtual environment:  
 
 ```bash
@@ -34,6 +23,22 @@ python3 -m virtualenv venv
 source venv/bin/activate   # On Linux/Mac
 venv\Scripts\activate      # On Windows
 ```
+
+To install the required dependencies, do:  
+
+```bash
+pip install -r requirements.txt
+
+Note that this will allow tensorflow in GPU mode if you have a GPU; otherwise,
+it will run on your CPU.
+
+```
+To install this package: 
+
+```bash
+pip install -e .
+```
+
 
 <!-- REPOSITORY LAYOUT -->
 ## Repository layout
@@ -70,6 +75,7 @@ K. Neilson, Y.S. Song, Z. Zhang, A.J. Mannix, E. Pop, "Deep Learning to Automate
 Parameter Extraction and Model Fitting of Two-Dimensional Transistors," arXiv,
 2025. doi:10.48550/arXiv.2507.05134.
 
+```bibtex
 @article{Bennett2025DeepLearning,
   title        = {Deep Learning to Automate Parameter Extraction and Model 
                   Fitting of Two-Dimensional Transistors},
@@ -81,6 +87,7 @@ Parameter Extraction and Model Fitting of Two-Dimensional Transistors," arXiv,
   doi          = {10.48550/arXiv.2507.05134},
   url          = {https://arxiv.org/abs/2507.05134}
 }
+```
 
 <!-- ACKNOWLEDGEMENTS -->
 ## Acknowledgements
