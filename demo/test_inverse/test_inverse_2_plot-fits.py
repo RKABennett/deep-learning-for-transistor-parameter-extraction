@@ -55,9 +55,20 @@ errors = []
 
 num_entries = len(filenames)
 target = int(num_entries*quantile)
+
+# for filename in filenames:
+#     error = filename.replace(dir_path + '/inverse_results/fits_inverse/pred/', '')
+#     error = error.replace('error=', '')
+#     error = error.replace('_pred.dat', '')
+#     errors.append(float(error))
+
+# Original code only works for linux/macos not windows
+
 for filename in filenames:
-    error = filename.replace(dir_path + '/inverse_results/fits_inverse/pred/', '')
-    error = error.replace('error=', '')
+    # Get just the filename from the full path
+    base_name = os.path.basename(filename)
+    # Now, safely remove the prefixes and suffixes
+    error = base_name.replace('error=', '')
     error = error.replace('_pred.dat', '')
     errors.append(float(error))
 
