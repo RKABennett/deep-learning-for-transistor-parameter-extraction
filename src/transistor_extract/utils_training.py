@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+from pathlib import Path
 import random
 import sys
 
@@ -18,15 +19,26 @@ config_path = os.path.join(root_dir, "config.json")
 with open(config_path, "r") as f:
     cfg = json.load(f)
 
-dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
 ###############################################################################
 #
 # Training functions
 #
 ###############################################################################
 
+class PrintEveryNEpochs(tf.keras.callbacks.Callback):
+    '''
+    Custom class that allows Tensorflow to print every N epochs.
+    '''
+    
+    def __init__(self, n):
+        self.n = n
+    
+    def on_epoch_end(self, epoch, logs=None):
+        if (epoch + 1) % self.n == 0:
+            print(f"Epoch {epoch + 1}: loss = {logs.get('loss', 'N/A'):.4f}, val_loss = {logs.get('val_loss', 'N/A'):.4f}")
+
 def train_inverse_NN(
+                     working_dir,
                      X_train, 
                      Y_train, 
                      X_dev, 
@@ -39,6 +51,7 @@ def train_inverse_NN(
                      N_anneals,
                      patience,
                      bs,
+                     print_frequency = 50
                      ):
 
     """
@@ -83,6 +96,8 @@ def train_inverse_NN(
             --  Patience used for early stopping
         bs (int)
             -- Mini-batch size
+        print_frequency
+            -- Number of epochs between print statements when training
     
     Returns:
         The trained inverse network and the val loss history during training.
@@ -96,7 +111,7 @@ def train_inverse_NN(
     
     val_loss_history = []
     cp = ModelCheckpoint(
-                         dir_path + '/' + model_name_inverse, 
+                         Path(working_dir) / model_name_inverse, 
                          save_best_only=True
                          )
     es = EarlyStopping(
@@ -142,8 +157,9 @@ def train_inverse_NN(
                                       Y_train, 
                                       validation_data=(X_dev, Y_dev),
                                       epochs=10**10,
-                                      callbacks=[cp, es], 
-                                      batch_size=bs
+                                      callbacks=[cp, es, PrintEveryNEpochs(print_frequency)], 
+                                      batch_size=bs,
+                                      verbose=0
                                       )
 
         val_loss_history.extend(model_fit.history['val_loss'])
@@ -166,8 +182,17 @@ def train_inverse_NN(
             model_inverse.set_weights(starting_weights)
         else:
             print("Updating weights for this cycle")
-            model_inverse.load_weights(dir_path + '/' + model_name_inverse)
+            model_inverse.load_weights(Path(working_dir) / model_name_inverse)
     
+    # Reset our weights if the full training cycle did not improve our val loss
+    if starting_val_loss_original < np.min(val_loss_history):
+        print("Resetting weights")
+        model_inverse.set_weights(pretrained_weights_original)
+    else:
+        print("Updating weights")
+        model_inverse.load_weights(Path(working_dir) / model_name_inverse)
+   
+
     # Display helpful information after training is complete.
     print("TRAINING COMPLETE.".format(
                                       starting_val_loss, 
@@ -181,16 +206,10 @@ def train_inverse_NN(
                                                        )
                                                        )
 
-    # Reset our weights if the full training cycle did not improve our val loss
-    if starting_val_loss_original < np.min(val_loss_history):
-        print("Resetting weights")
-        model_inverse.set_weights(pretrained_weights_original)
-    else:
-        print("Updating weights")
-        model_inverse.load_weights(dir_path + '/' + model_name_inverse)
     return model_inverse, val_loss_history
 
 def train_forward_NN(
+                     working_dir,
                      Id_train,
                      params_train,
                      Id_dev,
@@ -201,7 +220,8 @@ def train_forward_NN(
                      ar,
                      N_anneals,
                      patience,
-                     bs
+                     bs,
+                     print_frequency = 50
                      ):
 
     """
@@ -246,14 +266,15 @@ def train_forward_NN(
             --  Patience used for early stopping
         bs (int)
             -- Mini-batch size
-    
+        print_frequency
+            -- Number of epochs between print statements when training
     Returns:
         The trained forward network and the val loss history during training.
     """
 
     val_loss_history = []
     cp = ModelCheckpoint(
-                         dir_path + '/' + model_name_forward,
+                         Path(working_dir) / model_name_forward,
                          save_best_only=True
                          )
     es = EarlyStopping(
@@ -292,8 +313,9 @@ def train_forward_NN(
                               Id_train,
                               validation_data=(params_dev,Id_dev),
                               epochs=10**10,
-                              callbacks=[cp,es],
-                              batch_size = bs
+                              callbacks=[cp, es, PrintEveryNEpochs(print_frequency)],
+                              batch_size = bs,
+                              verbose=0
                               )
         val_loss_fn = np.min(model_fit.history['val_loss'])
         val_loss_history.append(val_loss_fn)
@@ -319,8 +341,9 @@ def train_forward_NN(
             model_forward.set_weights(starting_weights)
         else:
             print("Updating weights for this cycle")
-            model_forward.load_weights(dir_path + '/' + model_name_forward)
-
+            model_forward.load_weights(Path(working_dir) / model_name_forward)
+    
+    print("TRAINING COMPLETE.")
     return model_forward, val_loss_history
 
 ###############################################################################

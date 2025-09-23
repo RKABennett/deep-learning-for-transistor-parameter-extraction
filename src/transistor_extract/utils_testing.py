@@ -1,207 +1,22 @@
 import copy
 import json
 import os
+from pathlib import Path 
 import random
 import sys
 
 import matplotlib as mpl
-mpl.use('Agg')
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
 from .utils_misc import unscale_vector
 
-dir_path = os.path.dirname(os.path.abspath(sys.argv[0])) 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 config_path = os.path.join(root_dir, "config.json")
 with open(config_path, "r") as f:
     cfg = json.load(f)
-
-def test_model_inverse_params(
-    X_test_dummy,
-    Y_test_dummy,
-    model_inverse,
-    model_name_inverse,
-    Xscaling_name,
-    Yscaling_name,
-    ):
-
-    '''
-    Test the inverse model by applying the trained inverse NN to test data and
-    extracting the actual vs. predicted params.
-    '''
-   
-    X_test = copy.deepcopy(X_test_dummy)
-    Y_test = copy.deepcopy(Y_test_dummy)
-
-    Xscaling = np.loadtxt(dir_path + '/' + Xscaling_name)
-    Xmins = Xscaling[0,:]
-    Xmaxs = Xscaling[1,:]
-
-    Yscaling = np.loadtxt(dir_path + '/' + Yscaling_name)
-    Ymin = Yscaling[0,:]
-    Ymax = Yscaling[1,:]
-
-    Y_pred = np.array(model_inverse.predict(X_test))[:, 0:cfg["data"]["num_params"]]
-    errors = []
-
-    for i in range(np.shape(Y_test)[1]):
-        Y_test[:,i] = unscale_vector(Y_test[:,i], Ymin[i], Ymax[i])        
-        Y_pred[:,i] = unscale_vector(Y_pred[:,i], Ymin[i], Ymax[i])        
-
-
-        error = (Y_pred[:,i] - Y_test[:,i])
-        if i in [2,6]:
-            error /= 1e19
-        elif i in [3]:
-            error /= 1e13
-
-        errors.append(error)
-        std_error = np.std(error)
-        abs_error = np.abs(error)
-        
-        fig,ax = plt.subplots(1,2)
-        
-        # actual vs. predicted
-        ax[0].plot(
-                    Y_test[:,i], 
-                    Y_pred[:,i],
-                    color='k', 
-                    marker='o', 
-                    markersize = 0.25,
-                    ls='None'
-                    )
-
-        # line with slope = 1 for reference 
-        ax[0].plot(
-                       [Ymin[i], Ymax[i]], 
-                       [Ymin[i], Ymax[i]], 
-                       color='r', 
-                       marker='None', 
-                       ls='--',
-                       linewidth = 1.0
-                       ) 
-
-        range_hist = 5*np.std(error)
-        
-        # histogram of errors    
-        ax[1].hist(
-                 error, 
-                 bins = np.linspace(-range_hist, range_hist, 20),
-                 density = False,
-                 edgecolor = 'k', 
-                 linewidth=0.25,
-                 color = '#1048a2'
-                 )
-
-        ax[0].set_xlabel('Actual quantity')
-        ax[0].set_ylabel('Predicted quantity')
-
-
-        ax[1].set_xlim([-range_hist, range_hist])
-        ax[1].set_xlabel('Percent error')
-        ax[1].set_ylabel('Count')
-
-
-        fig.suptitle('''
-                     Median abs error = {:.4f} \n
-                     Mean abs error = {:.4f} \n
-                     Stdev of error = {:.4f} \n
-                     '''.format(
-                                np.median(abs_error), 
-                                np.mean(abs_error), 
-                                np.std(error))
-                     )
-
-
-        plt.tight_layout()
-        plt.savefig(dir_path + '/{}_error_plot_idx={}.png'.format(model_name_inverse, i))
-        plt.close()
-
-    return errors
-    
-    # this section can be added back in to inspect defect profiles and carrier
-    # densities
-    for i in range(10):
-        print(i)
-        DOS_actual = Y_test[i,2] * 0.615e-7 # units of cm^-2
-        Dpeak_actual = Y_test[i,3]
-        Dmid_actual = Y_test[i,4]
-        Dstd_actual = Y_test[i,5]
-        Apeak_actual = Y_test[i,6] * 0.615e-7 # units of cm^-2
-        Astd_actual = Y_test[i,7]
-
-        DOS_pred = Y_pred[i,2] * 0.615e-7 # units of cm^-2
-        Dpeak_pred = Y_pred[i,3]
-        Dmid_pred = Y_pred[i,4]
-        Dstd_pred = Y_pred[i,5]
-        Apeak_pred = Y_pred[i,6] * 0.615e-7 # units of cm^-2
-        Astd_pred = Y_pred[i,7]
-        
-        plot_name = 'profile_{}.png'.format(i)
-        E = np.linspace(-2, 2, 1000)
-
-        donors_actual, acceptors_actual = calc_profile(E, 
-                                                      Dpeak_actual, 
-                                                      Dmid_actual, 
-                                                      Dstd_actual, 
-                                                      Apeak_actual, 
-                                                      Astd_actual
-                                                      )
-
-
-
-        donors_pred, acceptors_pred = calc_profile(E, 
-                                                      Dpeak_pred, 
-                                                      Dmid_pred, 
-                                                      Dstd_pred, 
-                                                      Apeak_pred, 
-                                                      Astd_pred
-                                                      )
-        
-
-
-        mask = np.where(E <= 0)
-        DOS_actual_profile = DOS_actual*np.ones(np.size(E))
-        DOS_actual_profile[mask] = 0
-        DOS_pred_profile = DOS_pred*np.ones(np.size(E))
-        DOS_pred_profile[mask] = 0
-        plot_profile(
-                     E,
-                     DOS_actual_profile,
-                     DOS_pred_profile,
-                     donors_actual,
-                     donors_pred,
-                     acceptors_actual,
-                     acceptors_pred,
-                     plot_name)
-
-
-        plot_name = 'nch_{}.png'.format(i)
-
-        nch_actual = calc_nch_vs_Ef(E, E, DOS_actual_profile, donors_actual, acceptors_actual)
-        nch_pred = calc_nch_vs_Ef(E, E, DOS_pred_profile, donors_pred, acceptors_pred)
-        
-        plt.semilogy(
-                E,
-                nch_actual,
-                color = 'k',
-                ls = '-',
-                marker = 'None'
-                )
-        
-        plt.semilogy(
-                E,
-                nch_pred,
-                color = 'r',
-                ls = '--',
-                marker = 'None'
-                )
-
-        plt.xlim(-1, 0.5)
-        plt.savefig(dir_path + '/{}'.format(plot_name))
-        plt.close()
 
 def test_model_inverse_current(
     X_test,
@@ -321,8 +136,7 @@ def test_model_inverse_current(
                 error += error_metric(X_test[i,:,j], X_pred[i,:,j])
         errors.append(error/(cfg["data"]["num_IdVg"]*2))
 
-    np.savetxt(save_loc + '/{}'.format(error_filename), errors)
-
+    np.savetxt(Path(save_loc) / error_filename, errors)
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.hist(
              errors, 
@@ -334,7 +148,7 @@ def test_model_inverse_current(
 
 
     plt.tight_layout()
-    plt.savefig(save_loc + '/R2_histogram.png')
+    plt.savefig(Path(save_loc) / 'R2_histogram.png')
     plt.close()
     
     ###########################################################################
@@ -362,13 +176,13 @@ def test_model_inverse_current(
                                    )
 
             plt.tight_layout()
-            plt.savefig(save_loc + '/inverse_plot_{}.png'.format(i))
+            plt.savefig(Path(save_loc) / f'inverse_plot_{i}.png')
             plt.close()
 
     if save_fits:
-        data_folder = save_loc + '/fits_inverse'
-        actual_fits = save_loc + '/fits_inverse/actual'.format(fit_name)
-        pred_fits =   save_loc + '/fits_inverse/pred'.format(fit_name)
+        data_folder = Path(save_loc) / 'fits_inverse'
+        actual_fits = Path(save_loc) / 'fits_inverse' / 'actual'
+        pred_fits = Path(save_loc) / 'fits_inverse' / 'pred'
 
         for dir_name in [data_folder, actual_fits, pred_fits]:
             if not os.path.exists(dir_name):
@@ -382,10 +196,10 @@ def test_model_inverse_current(
                 Id_pred   = X_pred[i,:, j]
                 actuals.append(Id_actual)
                 preds.append(Id_pred)
-            actual_filename = 'error={:.12f}_actual.dat'.format(errors[i])
-            pred_filename = 'error={:.12f}_pred.dat'.format(errors[i])
-            np.savetxt(actual_fits + '/' + actual_filename, actuals)
-            np.savetxt(pred_fits + '/' + pred_filename, preds)
+            actual_filename = f'error={errors[i]:.12f}_actual.dat'
+            pred_filename = f'error={errors[i]:.12f}_pred.dat'
+            np.savetxt(Path(actual_fits) / actual_filename, actuals)
+            np.savetxt(Path(pred_fits) / pred_filename, preds)
     return X_test, X_pred, errors
 
 def test_model_forward(
@@ -483,17 +297,15 @@ def test_model_forward(
             error += error_metric(X_test[i,:,j], X_pred[i,:,j])
         errors.append(error/np.shape(X_test)[2])
 
-    np.savetxt(save_file_loc + '/{}'.format(error_filename), errors)
-
+    np.savetxt(Path(save_file_loc) / error_filename, errors)
     ###########################################################################
     #
     # Save fits to file
     #
     ###########################################################################
-    data_folder = save_file_loc + '/fits_forward'
-    actual_fits = save_file_loc + '/fits_forward/{}_actual'.format(fit_name)
-    pred_fits =   save_file_loc + '/fits_forward/{}_pred'.format(fit_name)
-
+    data_folder = Path(save_file_loc) / 'fits_forward'
+    actual_fits = Path(save_file_loc) / 'fits_forward' / f'{fit_name}_actual'
+    pred_fits = Path(save_file_loc) / 'fits_forward' / f'{fit_name}_pred'
     for dir_name in [data_folder, actual_fits, pred_fits]:
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
@@ -507,11 +319,10 @@ def test_model_forward(
             actuals.append(Id_actual)
             preds.append(Id_pred)
 
-        actual_filename = 'error={:.12f}_actual.dat'.format(errors[i])
-        pred_filename = 'error={:.12f}_pred.dat'.format(errors[i])
-        np.savetxt(actual_fits + '/' + actual_filename, actuals)
-        np.savetxt(pred_fits + '/' + pred_filename, preds)
-
+        actual_filename = f'error={errors[i]:.12f}_actual.dat'
+        pred_filename = f'error={errors[i]:.12f}_pred.dat'
+        np.savetxt(Path(actual_fits) / actual_filename, actuals)
+        np.savetxt(Path(pred_fits) / pred_filename, preds)
 
     ###########################################################################
     #
@@ -528,65 +339,8 @@ def test_model_forward(
                 axs[row, col].plot(X_pred[i, :, j], 'r', ls='--')
     
             plt.tight_layout()
-            plt.savefig(save_file_loc + '/forward_plot_{}.png'.format(i))
+            plt.savefig(Path(save_file_loc) / f'forward_plot_{i}.png')
             plt.close()
 
     return X_test, X_pred, errors
-
-def plot_forward_comparison(X_test, test_predictions, errors, plot_folder_name, V):
-   
-    if not os.path.exists(dir_path + '/' + plot_folder_name):
-        os.makedirs(dir_path + '/' + plot_folder_name)
-
-    for i in range(np.shape(X_test)[0]):
-        start = 0
-        stop = 32
-        skip = 3
-        R2 = errors[i]
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(4, 1.75))
-
-        # Panel 1
-        ax1a = ax1.twinx()
-        ax1.plot(V[start:stop:skip], 10**6*X_test[i, :, 0][start:stop:skip], color='k', marker='o', ls='None')
-        ax1.plot(V, 10**6*test_predictions[i, :, 0], 'r', ls='--')
-        ax1a.semilogy(V[start:stop:skip], 10**6*np.power(10, X_test[i, :, 1])[start:stop:skip], color='k', marker='o', ls='None')
-        ax1a.semilogy(V, 10**6*np.power(10, test_predictions[i, :, 1]), 'r', ls='--')
-
-        # Panel 2
-        ax2a = ax2.twinx()
-        ax2.plot(V[start:stop:skip], 10**6*X_test[i, :, 2][start:stop:skip], color='k', marker='o', ls='None')
-        ax2.plot(V, 10**6*test_predictions[i, :, 2], 'r', ls='--')
-        ax2a.semilogy(V[start:stop:skip], 10**6*np.power(10, X_test[i, :, 3][start:stop:skip]), color='k', marker='o', ls='None')
-        ax2a.semilogy(V, 10**6*np.power(10, test_predictions[i, :, 3]), 'r', ls='--')
-
-        plt.tight_layout()
-
-        maxId100 = np.max(X_test[i, :, 0])
-        maxId1000 = np.max(X_test[i, :, 2])
-
-        ax1.set_ylim(-0.1*10**6*maxId100, 10**6*maxId100*1.5)
-        ax2.set_ylim(-0.1*10**6*maxId1000, 10**6*maxId1000*1.5)
-        ax1a.set_ylim(10**-6, 10**2)
-        ax2a.set_ylim(10**-6, 10**2)
-
-
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_actual_Vds=0.1_linear.dat'.format(R2), np.array([V, X_test[i,:,0]]))
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_pred_Vds=0.1_linear.dat'.format(R2), np.array([V, test_predictions[i,:,0]]))
-
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_actual_Vds=0.1_log.dat'.format(R2), np.array([V, X_test[i,:,1]]))
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_pred_Vds=0.1_log.dat'.format(R2), np.array([V, test_predictions[i,:,1]]))
-
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_actual_Vds=1.0_linear.dat'.format(R2), np.array([V, X_test[i,:,2]]))
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_pred_Vds=1.0_linear.dat'.format(R2), np.array([V, test_predictions[i,:,2]]))
-
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_actual_Vds=1.0_log.dat'.format(R2), np.array([V, X_test[i,:,3]]))
-        np.savetxt(dir_path + '/' + plot_folder_name + '/R2_{:.6f}_data_pred_Vds=1.0_log.dat'.format(R2), np.array([V, test_predictions[i,:,3]]))
-
-        plt.tight_layout()
-        plt.savefig(dir_path + '/' + plot_folder_name + '/R2_{:.6f}plot_{}.png'.format(R2,i))
-        plt.close()
-
-        print(i)
-
 

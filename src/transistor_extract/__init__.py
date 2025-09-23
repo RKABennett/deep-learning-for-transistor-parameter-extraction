@@ -4,14 +4,12 @@ from .utils_training import (
     surrogate_loss,
     CombinedMSELoss,
     augment_data,
-)
+    )
 
 from .utils_testing import (
-    test_model_inverse_params,
     test_model_inverse_current,
     test_model_forward,
-    plot_forward_comparison,
-)
+    )
 
 from .utils_misc import (
     calc_R2,
@@ -32,25 +30,28 @@ from .utils_misc import (
     load_exp,
     process_device,
     process_exp,
-)
+    plot_variables,
+    plot_inverse,
+    plot_forward
+    )
 
 from .models import build_model_forward, build_model_inverse
 
 __all__ = [
-    # Training
+    # training
     "train_inverse_NN",
     "train_forward_NN",
     "surrogate_loss",
     "CombinedMSELoss",
     "augment_data",
 
-    # Testing
+    # testing
     "test_model_inverse_params",
     "test_model_inverse_current",
     "test_model_forward",
     "plot_forward_comparison",
 
-    # Misc
+    # misc
     "calc_R2",
     "shuffle_arrays_in_unison",
     "scale_X",
@@ -70,8 +71,16 @@ __all__ = [
     "process_device",
     "process_exp",
 
-    # Models
+    # notebook plotting (in misc)
+    "plot_forward",
+    "plot_inverse",
+    "plot_variables",
+
+    # models
     "build_model_forward",
     "build_model_inverse",
+    
+
+
 ]
 

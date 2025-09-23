@@ -56,7 +56,6 @@ def build_model_inverse(num_points, num_IdVg, num_feats, num_params):
                           inputs=input_layer_inverse,
                           outputs=output_layer_inverse
                           )
-    model_inverse.summary()
 
     model_inverse.set_weights(
                               [tf.keras.initializers.glorot_uniform()(w.shape)
