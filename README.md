@@ -28,12 +28,15 @@ To install the required dependencies, do:
 
 ```bash
 pip install -r requirements.txt
+```
 
 Note that this will allow tensorflow in GPU mode if you have a GPU; otherwise,
 it will run on your CPU.
 
-```
-To install this package: 
+
+To install this package (required to run the scripts in 
+[the demo directory](./demo) and 
+[the demo notebook](./../demo_notebook/demo_notebook.ipynb): 
 
 ```bash
 pip install -e .
@@ -47,6 +50,7 @@ Key files directories of this project are:
 - [config.json](./config.json) -- A config file where key variables are defined.
 - [data](./data)    -- Sentaurus simulation data from our preprint.
 - [demo](./demo)    -- A training example using data from our preprint.
+- [demo](./demo)    -- A training notebook example using data from our preprint.
 - [models](./models)  -- Sample pretrained models.
 - [src](./src)     -- Core code for this project.
 
@@ -55,7 +59,9 @@ Key files directories of this project are:
 ## Getting Started
 
 We provide a simple example for training and testing a neural network for 
-parameter extraction of 2D trainsistors in the demo directory. 
+parameter extraction of 2D trainsistors in the [demo directory](./demo). We
+also provide a walkthrough notebook in the 
+[demo_notebook directory](./demo_notebook).
 
 See the [README file in the demo directory](./demo/README.md) for specific 
 usage details.

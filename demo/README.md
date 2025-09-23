@@ -42,14 +42,8 @@ To test the trained inverse neural network, navigate to
 order:
 
 ```bash 
-
-# FIXED TYPOS
-
-# test_inverse_0_save-fits.py --model_inv ./../NN_inverse.keras --model_for ./../../NN_forward_fully_trained.keras
 test_inverse_0_save-fits.py --model_inv ./../NN_inverse.keras --model_for ./../../models/NN_forward_well_trained.keras 
-# test_forward_1_param-extract.py --model_inv ./../NN_inverse.keras
 test_inverse_1_param-extract.py --model_inv ./../NN_inverse.keras
-# test_forward_2_plot-fits.py
 test_inverse_2_plot-fits.py
 ```
 
