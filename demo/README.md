@@ -31,8 +31,8 @@ To test the trained forward neural network, navigate to
 [test_forward](./test_forward) and then run:
 
 ```bash                                                                         
-test_forward_0_save-fits.py --model_for ./../NN_forward.keras
-test_forward_1_plots-fits.py
+python3 test_forward_0_save-fits.py --model_for ./../NN_forward.keras
+python3 test_forward_1_plot-fits.py
 ```
 This will generate a sample plot showing the plot for a specified quantile 
 (default: 5th quantile, i.e., worst 5%).
