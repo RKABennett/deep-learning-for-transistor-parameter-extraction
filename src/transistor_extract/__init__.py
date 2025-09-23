@@ -27,7 +27,6 @@ from .utils_misc import (
     extract_folder,
     build_x_array,
     build_y_array,
-    load_exp,
     process_device,
     process_exp,
     plot_variables,

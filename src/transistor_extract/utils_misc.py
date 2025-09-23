@@ -448,42 +448,6 @@ def build_y_array(filename):
     y = np.reshape(y, (1, np.size(y)))
     return y, variable_names
 
-def load_exp(filename, sheetname, V, gateVcol = 'GateV', Idcol = 'DrainI', start = 1102, stop = 1854, skip = 10, W = 2):
-    df = pd.read_excel(filename, sheet_name=sheetname, usecols=[gateVcol, Idcol])
-    Vg = np.array(df["GateV"])[start:stop]
-    Id = np.array(df["DrainI"])[start:stop]/W
-    Id_int = interpolate_data([Vg, Id], V)
-    Id_int_log = interpolate_data([Vg, np.log10(np.abs(Id))], V)
-    plt.plot(Vg[::skip], Id[::skip], color = 'k', marker = 'o', ls = 'None')
-    plt.plot(V, Id_int, color = 'r', ls = '--')
-    plt.savefig(filename.replace('.xlsx', '.png'))
-    plt.close()
-
-    plt.plot(Vg[::skip], np.log10(Id[::skip]), color = 'k', marker = 'o', ls = 'None')
-    plt.plot(V, Id_int_log, color = 'r', ls = '--')
-    plt.savefig(filename.replace('.xlsx', '_log.png'))
-    plt.close()
-
-    return (Id_int, Id_int_log)
-
-def load_exp(filename, sheetname, V, gateVcol = 'GateV', Idcol = 'DrainI', start = 1102, stop = 1854, skip = 1, W = 1):
-    df = pd.read_excel(filename, sheet_name=sheetname, usecols=[gateVcol, Idcol])
-    Vg = np.array(df["GateV"])[start:stop]
-    Id = np.array(df["DrainI"])[start:stop]/W
-    Id_int = interpolate_data([Vg, Id], V)
-    Id_int_log = interpolate_data([Vg, np.log10(np.abs(Id))], V)
-    plt.plot(Vg[::skip], Id[::skip], color = 'k', marker = 'o', ls = 'None')
-    plt.plot(V, Id_int, color = 'r', ls = '--')
-    plt.savefig(filename.replace('.xlsx', '.png'))
-    plt.close()
-
-    plt.plot(Vg[::skip], np.log10(Id[::skip]), color = 'k', marker = 'o', ls = 'None')
-    plt.plot(V, Id_int_log, color = 'r', ls = '--')
-    plt.savefig(filename.replace('.xlsx', '_log.png'))
-    plt.close()
-
-    return (Id_int, Id_int_log)
-
 def process_device(dev, V, working_dir):
     dev_100_filename = Path(working_dir) / 'exp_data' / f'{dev}_100mVds.xlsx'
     dev_1000_filename = Path(working_dir) / 'exp_data' / f'{dev}_1Vds.xlsx'
