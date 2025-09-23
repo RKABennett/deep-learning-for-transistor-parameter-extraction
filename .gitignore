@@ -7,6 +7,7 @@ Y_scaling.dat
 
 # all generated plots
 *.png
+!demo_notebook/images/*.png
 
 # processed data
 data/processed
