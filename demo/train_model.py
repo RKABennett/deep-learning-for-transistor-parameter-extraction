@@ -5,10 +5,12 @@ import os
 from pathlib import Path
 import random
 import scipy.stats
+import sys
 
 import tensorflow as tf                                                         
 import transistor_extract as TE
 
+dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 repo_root = Path(__file__).resolve().parents[1]
 processed_data_loc = str(repo_root / 'data' / 'processed')
 config_path = os.path.join(repo_root, "config.json")
@@ -86,6 +88,7 @@ model_inverse_pretrain = TE.build_model_inverse(
 #
 ###############################################################################
 model_forward, _ = TE.train_forward_NN(
+    dir_path,
     X_train[:, :, 0:cfg["data"]["num_IdVg"] * 2],
     Y_train,
     X_dev[:, :, 0:cfg["data"]["num_IdVg"] * 2],
@@ -104,7 +107,7 @@ model_forward, _ = TE.train_forward_NN(
 # inverse with pretraining
 #
 ###############################################################################
-N_augment = 100000
+N_augment = 1000
 Xscaling = np.loadtxt(processed_data_loc + '/Xscaling.dat')
 Yscaling = np.loadtxt(processed_data_loc + '/Yscaling.dat')
 
@@ -123,11 +126,11 @@ X_train_synth = X_synth[0:num_synth_train]
 Y_train_synth = Y_synth[0:num_synth_train]
 X_dev_synth = X_synth[num_synth_train:]
 Y_dev_synth = Y_synth[num_synth_train:]
-
 Z_train_synth = TE.concat_X_and_Y(X_train_synth, Y_train_synth)
 Z_dev_synth = TE.concat_X_and_Y(X_dev_synth, Y_dev_synth)
 
 model_inverse_pretrain, _ = TE.train_inverse_NN(
+    dir_path,
     X_train_synth,
     Z_train_synth,
     X_dev_synth,
@@ -143,6 +146,7 @@ model_inverse_pretrain, _ = TE.train_inverse_NN(
 )
 
 model_inverse_pretrain_final, _ = TE.train_inverse_NN(
+    dir_path,
     X_train,
     Z_train,
     X_dev,
