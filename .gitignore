@@ -28,7 +28,20 @@ official_results/
 # all results folders
 demo/test_forward/forward_results
 demo/test_inverse/inverse_results
+demo_notebook/forward_results
+demo_notebook/inverse_results
 
 # virtual environment
 venv/
 
+# notebook checkpoints
+.ipynb_checkpoints/
+
+# jupyter virtual environment
+jupyter_env/
+
+# Log files
+*.log
+
+# Other output files
+variable_names.txt
