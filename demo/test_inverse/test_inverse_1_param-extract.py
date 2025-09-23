@@ -30,7 +30,7 @@ mpl.rcParams['ytick.direction'] = 'in'
 mpl.rcParams['lines.markersize'] = 5
 
 repo_root = Path(__file__).resolve().parents[2]
-processed_data_loc = str(repo_root / 'data' / 'processed')
+processed_data_loc = repo_root / 'data' / 'processed' 
 config_path = os.path.join(repo_root, "config.json")
 
 tf.random.set_seed(19700101)
@@ -60,14 +60,14 @@ model_inverse = load_model(
                 custom_objects={'surrogate_loss': TE.surrogate_loss}
                 ) 
 
-X_test = np.load(processed_data_loc + '/X_test.npy')
-Y_test = np.load(processed_data_loc + '/Y_test.npy')
+X_test = np.load(processed_data_loc / 'X_test.npy')
+Y_test = np.load(processed_data_loc / 'Y_test.npy')
 
-Xscaling = np.loadtxt(processed_data_loc + '/Xscaling.dat')
+Xscaling = np.loadtxt(processed_data_loc / 'Xscaling.dat')
 Xmins = Xscaling[0,:]
 Xmaxs = Xscaling[1,:]
 
-Yscaling = np.loadtxt(processed_data_loc + '/Yscaling.dat')
+Yscaling = np.loadtxt(processed_data_loc / 'Yscaling.dat')
 Ymins = Yscaling[0,:]
 Ymaxs = Yscaling[1,:]
 
@@ -99,7 +99,7 @@ variables = [
             'Acceptor band tail energy width (meV)',
             ]
 
-variable_names = np.loadtxt(dir_path + '/../variable_names.txt', dtype = 'str')
+variable_names = np.loadtxt(str(Path(dir_path).parent / 'variable_names.txt'), dtype = 'str')
 
 for j in range(8):
     fig, axs = plt.subplots(1,2, figsize = (3.5, 2.25))
@@ -179,7 +179,7 @@ for j in range(8):
                  round(std, 3)),
              fontsize=fontsize)
     
-    plt.savefig(dir_path + '/inverse_results/{}.png'.format(variable_names[j]), transparent = True)
+    plt.savefig(Path(dir_path) / 'inverse_results' / f'{variable_names[j]}.png', transparent = True)
     plt.close()
 
 

@@ -56,18 +56,9 @@ errors = []
 num_entries = len(filenames)
 target = int(num_entries*quantile)
 
-# for filename in filenames:
-#     error = filename.replace(dir_path + '/inverse_results/fits_inverse/pred/', '')
-#     error = error.replace('error=', '')
-#     error = error.replace('_pred.dat', '')
-#     errors.append(float(error))
-
-# Original code only works for linux/macos not windows
 
 for filename in filenames:
-    # Get just the filename from the full path
     base_name = os.path.basename(filename)
-    # Now, safely remove the prefixes and suffixes
     error = base_name.replace('error=', '')
     error = error.replace('_pred.dat', '')
     errors.append(float(error))
@@ -75,8 +66,8 @@ for filename in filenames:
 errors = sorted(errors)
 target_error = errors[target]
 
-data_pred = np.loadtxt(dir_path + '/inverse_results/fits_inverse/pred/error={:.12f}_pred.dat'.format(target_error))
-data_actual = np.loadtxt(dir_path + '/inverse_results/fits_inverse/actual/error={:.12f}_actual.dat'.format(target_error))
+data_pred = np.loadtxt(Path(dir_path) / 'inverse_results' / 'fits_inverse' / 'pred' / f'error={target_error:.12f}_pred.dat')
+data_actual = np.loadtxt(Path(dir_path) / 'inverse_results' / 'fits_inverse' / 'actual' / f'error={target_error:.12f}_actual.dat')
 
 Id_100_pred = data_pred[0]
 Id_100_log_pred = data_pred[1]
@@ -202,6 +193,6 @@ ax1.semilogy(
         )
 
 plt.tight_layout()
-plt.savefig(dir_path + '/inverse_results/reverse_engineered_fit_quantile={}_R2={}.png'.format(quantile, float(target_error)))
+plt.savefig(Path(dir_path) / 'inverse_results' / f'reverse_engineered_fit_quantile={quantile}_R2={float(target_error)}.png')
 plt.close()
 

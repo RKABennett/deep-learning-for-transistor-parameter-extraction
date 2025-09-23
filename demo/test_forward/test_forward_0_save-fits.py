@@ -11,7 +11,7 @@ from pathlib import Path
 
 dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 repo_root = Path(__file__).resolve().parents[2]
-processed_data_loc = str(repo_root / 'data' / 'processed')
+processed_data_loc = repo_root / 'data' / 'processed'
 config_path = os.path.join(repo_root, "config.json")
 
 with open(config_path, "r") as f:
@@ -32,8 +32,8 @@ args = parser.parse_args()
 #
 ###############################################################################
 
-X_test = np.load(processed_data_loc + '/X_test.npy')[:, :, 0:cfg["data"]["num_IdVg"] * 2]
-Y_test = np.load(processed_data_loc + '/Y_test.npy')
+X_test = np.load(processed_data_loc / 'X_test.npy')[:, :, 0:cfg["data"]["num_IdVg"] * 2]
+Y_test = np.load(processed_data_loc / 'Y_test.npy')
 
 ###############################################################################
 #
@@ -51,11 +51,11 @@ model_forward = load_model(
     },
 )
 
-Xscaling = np.loadtxt(processed_data_loc + '/Xscaling.dat')
-Yscaling = np.loadtxt(processed_data_loc + '/Yscaling.dat')
+Xscaling = np.loadtxt(processed_data_loc / 'Xscaling.dat')
+Yscaling = np.loadtxt(processed_data_loc / 'Yscaling.dat')
 
 # make our results folder if it doesn't exist
-os.makedirs(dir_path + '/forward_results', exist_ok=True)
+(Path(dir_path) / 'forward_results').mkdir(parents=True, exist_ok=True)
 
 TE.test_model_forward(
     X_test,
@@ -65,7 +65,7 @@ TE.test_model_forward(
     Yscaling,
     TE.calc_R2,
     error_filename_forward,
-    dir_path + '/forward_results',
+    Path(dir_path) / 'forward_results',
     plot=True,
     fit_name=os.path.basename(model_name_forward).replace('.keras', ''),
 )

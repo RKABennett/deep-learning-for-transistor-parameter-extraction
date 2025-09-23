@@ -13,10 +13,9 @@ working_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 with open(config_path, "r") as f:
     cfg = json.load(f)
 
-
 repo_root = Path(__file__).resolve().parents[1]
 raw_data_loc = str(repo_root / 'data' / 'raw')
-processed_data_loc = str(repo_root / 'data' / 'processed')
+processed_data_loc = repo_root / 'data' / 'processed'
 os.makedirs(processed_data_loc, exist_ok=True)
 
 np.random.seed(19700101)
@@ -73,8 +72,7 @@ print('X_test = {}; Y_test: {}'.format(
                           )
       )
 
-np.save(processed_data_loc + '/X_train_and_dev.npy', X_train_and_dev)
-np.save(processed_data_loc + '/X_test.npy', X_test)
-np.save(processed_data_loc + '/Y_train_and_dev.npy', Y_train_and_dev)
-np.save(processed_data_loc + '/Y_test.npy', Y_test)
-
+np.save(processed_data_loc / 'X_train_and_dev.npy', X_train_and_dev)
+np.save(processed_data_loc / 'X_test.npy', X_test)
+np.save(processed_data_loc / 'Y_train_and_dev.npy', Y_train_and_dev)
+np.save(processed_data_loc / 'Y_test.npy', Y_test)

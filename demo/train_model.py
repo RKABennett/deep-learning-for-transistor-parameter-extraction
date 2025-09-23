@@ -12,7 +12,7 @@ import transistor_extract as TE
 
 dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 repo_root = Path(__file__).resolve().parents[1]
-processed_data_loc = str(repo_root / 'data' / 'processed')
+processed_data_loc = repo_root / 'data' / 'processed'
 config_path = os.path.join(repo_root, "config.json")
 with open(config_path, "r") as f:
     cfg = json.load(f)
@@ -27,8 +27,8 @@ random.seed(19700101)
 # of our data: 500 in our training set.
 #
 ###############################################################################
-X_train_and_dev = np.load(processed_data_loc + '/X_train_and_dev.npy')
-Y_train_and_dev = np.load(processed_data_loc + '/Y_train_and_dev.npy')
+X_train_and_dev = np.load(processed_data_loc / 'X_train_and_dev.npy')
+Y_train_and_dev = np.load(processed_data_loc / 'Y_train_and_dev.npy')
 X_train_and_dev, Y_train_and_dev = TE.shuffle_arrays_in_unison(
                                   X_train_and_dev, Y_train_and_dev)
 
@@ -43,11 +43,11 @@ dev_end = train_size + dev_size
 
 X_train = X_train_and_dev[train_start:train_end:]
 X_dev = X_train_and_dev[dev_start:dev_end:]
-X_test = np.load(processed_data_loc + '/X_test.npy')
+X_test = np.load(processed_data_loc / 'X_test.npy')
 
 Y_train = Y_train_and_dev[train_start:train_end]
 Y_dev = Y_train_and_dev[dev_start:dev_end]
-Y_test = np.load(processed_data_loc + '/Y_test.npy')
+Y_test = np.load(processed_data_loc / 'Y_test.npy')
 
 Z_train = TE.concat_X_and_Y(X_train, Y_train)
 Z_dev = TE.concat_X_and_Y(X_dev, Y_dev)
@@ -107,9 +107,9 @@ model_forward, _ = TE.train_forward_NN(
 # inverse with pretraining
 #
 ###############################################################################
-N_augment = 1000
-Xscaling = np.loadtxt(processed_data_loc + '/Xscaling.dat')
-Yscaling = np.loadtxt(processed_data_loc + '/Yscaling.dat')
+N_augment = 100000
+Xscaling = np.loadtxt(processed_data_loc / 'Xscaling.dat')
+Yscaling = np.loadtxt(processed_data_loc / 'Yscaling.dat')
 
 X_synth, Y_synth = TE.augment_data(
     model_forward,

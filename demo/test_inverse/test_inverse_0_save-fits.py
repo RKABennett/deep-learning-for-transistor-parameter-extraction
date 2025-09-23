@@ -5,8 +5,10 @@
 ###############################################################################
 
 import argparse
+import json
 import numpy as np
 import os
+from pathlib import Path
 import sys
 import random
 
@@ -15,7 +17,6 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 import transistor_extract as TE
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '/home/rob/2D_ML/data_for_paper')))
 dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 # seed for reproducibility 
@@ -32,27 +33,13 @@ args = parser.parse_args()
 model_name_inverse = args.model_inv
 model_name_forward = args.model_for
 
-
-#####################################
-from pathlib import Path
-
-import json
-import os
-
-# Get the absolute path to the project root
 repo_root = Path(__file__).resolve().parents[2]
-processed_data_loc = str(repo_root / 'data' / 'processed')
+processed_data_loc = repo_root / 'data' / 'processed'
 
-# Build the path to config.json
 config_path = os.path.join(repo_root, "config.json")
 
-# Load the JSON config
 with open(config_path, "r") as f:
     cfg = json.load(f)
-
-##############################################################
-
-
 
 ###############################################################################
 #
@@ -60,8 +47,8 @@ with open(config_path, "r") as f:
 #
 ###############################################################################
 
-X_test = np.load(processed_data_loc + '/X_test.npy')
-Y_test = np.load(processed_data_loc + '/Y_test.npy')
+X_test = np.load(processed_data_loc / 'X_test.npy')
+Y_test = np.load(processed_data_loc / 'Y_test.npy')
 quantile = 0.05
 
 #######################################################################
@@ -84,11 +71,11 @@ model_forward_fully_trained = load_model(
                 custom_objects={'CombinedMSELoss': TE.CombinedMSELoss}             
                 ) 
 
-Xscaling = np.loadtxt(processed_data_loc + '/Xscaling.dat')
-Yscaling = np.loadtxt(processed_data_loc + '/Yscaling.dat')
+Xscaling = np.loadtxt(processed_data_loc / 'Xscaling.dat')
+Yscaling = np.loadtxt(processed_data_loc / 'Yscaling.dat')
 
 # make our results folder if it doesn't exist
-os.makedirs(dir_path + '/inverse_results', exist_ok=True)
+(Path(dir_path) / 'inverse_results').mkdir(parents=True, exist_ok=True)
 
 _, _, errors = TE.test_model_inverse_current(
     X_test,
@@ -99,7 +86,7 @@ _, _, errors = TE.test_model_inverse_current(
     Yscaling,
     TE.calc_R2,
     error_filename_inverse,
-    dir_path + '/inverse_results',
+    Path(dir_path) / 'inverse_results',
     deriv_error = False,
     plot = True,
     save_fits = True,

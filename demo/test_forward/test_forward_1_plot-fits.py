@@ -4,6 +4,7 @@
 #
 ###############################################################################
 import glob
+from pathlib import Path
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -29,14 +30,13 @@ mpl.rcParams.update({'font.size': fontsize})
 quantile = 0.05
 
 subfolder_name = 'NN_forward_pred'
-filenames = glob.glob(dir_path + '/forward_results/fits_forward/' + subfolder_name + '/*.dat')
+filenames = [str(p) for p in Path(dir_path).glob(f'forward_results/fits_forward/{subfolder_name}/*.dat')]
 errors = []
 
-
 for filename in filenames:
-    error = filename.replace(dir_path + '/forward_results/fits_forward/' + subfolder_name + '/', '')
+    error = filename.replace(str(Path(dir_path) / 'forward_results' / 'fits_forward' / subfolder_name), '')
     error = error.replace('error=', '')
-    error = error.replace('_pred.dat', '')
+    error = error.replace('_pred.dat', '').replace('/', '')
     errors.append(float(error))
 
 num_entries = len(filenames)
@@ -46,8 +46,8 @@ target = int(num_entries*quantile)
 errors = sorted(errors)
 target_error = errors[target]
 
-data_pred = np.loadtxt(dir_path + '/forward_results/fits_forward/NN_forward_pred/error={:.12f}_pred.dat'.format(target_error))
-data_actual = np.loadtxt(dir_path + '/forward_results/fits_forward/NN_forward_actual/error={:.12f}_actual.dat'.format(target_error))
+data_pred = np.loadtxt(Path(dir_path) / 'forward_results' / 'fits_forward' / 'NN_forward_pred' / f'error={target_error:.12f}_pred.dat')
+data_actual = np.loadtxt(Path(dir_path) / 'forward_results' / 'fits_forward' / 'NN_forward_actual' / f'error={target_error:.12f}_actual.dat')
 
 V = np.linspace(-5.9, 49.9, 32)
 
@@ -167,6 +167,6 @@ ax1.semilogy(
     )
 
 plt.tight_layout()
-plt.savefig(dir_path + '/forward_results/NN_forward_test_quantile={}_R2={}.png'.format(quantile, float(target_error)), transparent = False)
+plt.savefig(Path(dir_path) / 'forward_results' / f'NN_forward_test_quantile={quantile}_R2={float(target_error)}.png', transparent = False)
 plt.close()
 
