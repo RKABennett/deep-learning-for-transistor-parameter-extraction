@@ -42,7 +42,6 @@ To install this package (required to run the scripts in
 pip install -e .
 ```
 
-
 <!-- REPOSITORY LAYOUT -->
 ## Repository layout
 Key files directories of this project are:
@@ -50,7 +49,7 @@ Key files directories of this project are:
 - [config.json](./config.json) -- A config file where key variables are defined.
 - [data](./data)    -- Sentaurus simulation data from our preprint.
 - [demo](./demo)    -- A training example using data from our preprint.
-- [demo](./demo)    -- A training notebook example using data from our preprint.
+- [demo_notebook](./demo_notebook)    -- A training notebook example using data from our preprint.
 - [models](./models)  -- Sample pretrained models.
 - [src](./src)     -- Core code for this project.
 
