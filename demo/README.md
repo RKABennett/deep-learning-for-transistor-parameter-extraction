@@ -23,8 +23,8 @@ README in the root directory).
 Then, to train all networks, run these Python files in the following order:
 
 ```bash                                                                         
-process_data.py
-train_model.py # this takes ~5 minutes on an NVIDIA RTX 4080 SUPER
+python3 process_data.py
+python3 train_model.py # this takes ~5 minutes on an NVIDIA RTX 4080 SUPER
 ```
 
 To test the trained forward neural network, navigate to 
@@ -42,9 +42,9 @@ To test the trained inverse neural network, navigate to
 order:
 
 ```bash 
-test_inverse_0_save-fits.py --model_inv ./../NN_inverse.keras --model_for ./../../models/NN_forward_well_trained.keras 
-test_inverse_1_param-extract.py --model_inv ./../NN_inverse.keras
-test_inverse_2_plot-fits.py
+python3 test_inverse_0_save-fits.py --model_inv ./../NN_inverse.keras --model_for ./../../models/NN_forward_well_trained.keras 
+python3 test_inverse_1_param-extract.py --model_inv ./../NN_inverse.keras
+python3 test_inverse_2_plot-fits.py
 ```
 
 This will generate actual vs. predicted plots for all of the model variables,
