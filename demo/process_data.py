@@ -8,6 +8,8 @@ import transistor_extract as TE
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 config_path = os.path.join(root_dir, "config.json")
+working_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
 with open(config_path, "r") as f:
     cfg = json.load(f)
 
@@ -25,7 +27,6 @@ np.random.seed(19700101)
 #                     
 ###############################################################################
 
-counter = 0
 X_array = [] # we're going to populate this with the IdVg data and derivatives
 Y_array = [] # we're going to populate this with the relevant features
 
@@ -37,6 +38,7 @@ V = np.linspace(
 
 X, Y = TE.process_folder(
                          raw_data_loc,
+                         working_dir,
                          processed_data_loc,
                          V,
                          cfg["data"]["n_points"],
