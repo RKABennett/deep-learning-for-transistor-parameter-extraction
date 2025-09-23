@@ -2,8 +2,11 @@ import copy
 import csv
 import glob
 import json
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import os
+from pathlib import Path
 from scipy.interpolate import interp1d
 import sys
 import time
@@ -13,9 +16,6 @@ root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 config_path = os.path.join(root_dir, "config.json")
 with open(config_path, "r") as f:
     cfg = json.load(f)
-
-dir_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
 
 def calc_R2(y_true, y_pred):
     """
@@ -278,20 +278,26 @@ def interpolate_data(data, new_V, logscale = False):
 
 def process_folder(
                    dirname, 
+                   working_dir,
                    processed_data_loc,
                    V, 
                    n_points, 
                    num_IdVg, 
                    num_feats, 
-                   minval, 
+                   minval,
+                   print_progress = False,
+                   print_frequency = 1000
                    ):
     X_unscaled, Y_unscaled = extract_folder(
-                                            dirname, 
+                                            dirname,
+                                            working_dir,
                                             V, 
                                             n_points, 
                                             num_IdVg, 
                                             num_feats, 
-                                            minval
+                                            minval,
+                                            print_progress = print_progress,
+                                            print_frequency = print_frequency
                                             )
     
     current_indices = []
@@ -310,12 +316,23 @@ def process_folder(
 
     X, Xmins, Xmaxs  = scale_X(X_unscaled)
     Y, Ymins, Ymaxs  = scale_Y(Y_unscaled)    
-    np.savetxt(processed_data_loc + '/Xscaling.dat', np.array([Xmins, Xmaxs]))
-    np.savetxt(processed_data_loc + '/Yscaling.dat', np.array([Ymins, Ymaxs]))
+    np.savetxt(Path(processed_data_loc) / 'Xscaling.dat', np.array([Xmins, Xmaxs]))
+    np.savetxt(Path(processed_data_loc) / 'Yscaling.dat', np.array([Ymins, Ymaxs]))
     return X, Y
 
-def extract_folder(dir_name, V, n_points, num_IdVg, num_feats, minval):
-    subdirs = sorted(glob.glob(dir_name + '/*'))    
+def extract_folder(
+                   dir_name,
+                   working_dir,
+                   V, 
+                   n_points, 
+                   num_IdVg, 
+                   num_feats, 
+                   minval,
+                   print_progress = False,
+                   print_frequency = 1000
+                   ):
+
+    subdirs = sorted(str(p) for p in Path(dir_name).glob('*'))    
     counter = 0
     crit_mass = 10000
     tick = time.time()
@@ -335,17 +352,16 @@ def extract_folder(dir_name, V, n_points, num_IdVg, num_feats, minval):
 
         counter += 1 # for keeping track of number of processed daa
         
-        if counter % 250 == 0:
-            tock = time.time()
-            print(counter, tock - tick, np.shape(X_array))
-            tick = tock
+        
+        if print_progress and counter % print_frequency == 0:
+            print('Processed {} devices. Current array shape: {}' .format(counter,  np.shape(X_array)))
 
 
-        y, variable_names = build_y_array(subdir + '/variables.csv')
+        
+        y, variable_names = build_y_array(Path(subdir) / 'variables.csv')
         x = np.array([])
         
-        subdir_files = glob.glob(subdir + '/*')
-        subdir_files = sorted(subdir_files)
+        subdir_files = sorted(str(p) for p in Path(subdir).glob('*'))
         Flag = False
         Id = 0
         
@@ -370,7 +386,7 @@ def extract_folder(dir_name, V, n_points, num_IdVg, num_feats, minval):
         X_array.append(x)
         Y_array.append(y)
 
-        with open(dir_path + '/variable_names.txt', 'w') as file:
+        with open(Path(working_dir) / 'variable_names.txt', 'w') as file:
             for string in variable_names:
                 file.write(string + '\n')
 
@@ -450,41 +466,6 @@ def load_exp(filename, sheetname, V, gateVcol = 'GateV', Idcol = 'DrainI', start
 
     return (Id_int, Id_int_log)
 
-def process_device(dev):
-    # process an experimental device 
-
-    dev_100_filename =  dir_path + '/exp_data/' + dev + '_100mVds.xlsx'
-    dev_1000_filename = dir_path + '/exp_data/' + dev + '_1Vds.xlsx'
-    Id_100, Id_100_log = load_exp(dev_100_filename, '{}_100mVds'.format(dev), V)
-    Id_1000, Id_1000_log = load_exp(dev_1000_filename, '{}_1Vds'.format(dev), V)
-
-    Id_100_grad = np.gradient(Id_100, V)
-    Id_100_log_grad = np.gradient(Id_100_log, V)
-    Id_100_grad2 = np.gradient(Id_100_grad, V)
-    Id_100_log_grad2 = np.gradient(Id_100_log_grad, V)
-
-    Id_1000_grad = np.gradient(Id_1000, V)
-    Id_1000_log_grad = np.gradient(Id_1000_log, V)
-    Id_1000_grad2 = np.gradient(Id_1000_grad, V)
-    Id_1000_log_grad2 = np.gradient(Id_1000_log_grad, V)
-
-    x_input = np.array([
-    Id_100,
-    Id_100_log,
-    Id_100_grad,
-    Id_100_log_grad,
-    Id_100_grad2,
-    Id_100_log_grad2,
-    Id_1000,
-    Id_1000_log,
-    Id_1000_grad,
-    Id_1000_log_grad,
-    Id_1000_grad2,
-    Id_1000_log_grad2,
-    ])
-
-    return x_input
-
 def load_exp(filename, sheetname, V, gateVcol = 'GateV', Idcol = 'DrainI', start = 1102, stop = 1854, skip = 1, W = 1):
     df = pd.read_excel(filename, sheet_name=sheetname, usecols=[gateVcol, Idcol])
     Vg = np.array(df["GateV"])[start:stop]
@@ -503,9 +484,9 @@ def load_exp(filename, sheetname, V, gateVcol = 'GateV', Idcol = 'DrainI', start
 
     return (Id_int, Id_int_log)
 
-def process_device(dev, V):
-    dev_100_filename =  dir_path + '/exp_data/' + dev + '_100mVds.xlsx'
-    dev_1000_filename = dir_path + '/exp_data/' + dev + '_1Vds.xlsx'
+def process_device(dev, V, working_dir):
+    dev_100_filename = Path(working_dir) / 'exp_data' / f'{dev}_100mVds.xlsx'
+    dev_1000_filename = Path(working_dir) / 'exp_data' / f'{dev}_1Vds.xlsx'
     Id_100, Id_100_log = load_exp(dev_100_filename, '{}_100mVds'.format(dev), V)
     Id_1000, Id_1000_log = load_exp(dev_1000_filename, '{}_1Vds'.format(dev), V)
     
@@ -587,3 +568,394 @@ def process_exp(data_exp_100, data_exp_1000, new_V, minval):
     ])
 
     return x_input
+
+###############################################################################
+#
+# Functions used only in the notebook demo
+#
+###############################################################################
+
+def plot_variables(model_inverse, plot_idx, X_test, Y_test, Xscaling, Yscaling):
+    fontsize = 9
+    mpl.rcParams.update({'font.size': fontsize})
+
+    blue = '#19546d'
+    red = '#bd2b49'
+    purple = '#192a6d'
+
+
+    Xmins = Xscaling[0,:]
+    Xmaxs = Xscaling[1,:]
+
+    Ymins = Yscaling[0,:]
+    Ymaxs = Yscaling[1,:]
+
+    Y_pred = np.array(model_inverse.predict(X_test))[:, 0:cfg["data"]["num_params"]]
+
+    ticks = [
+              [0, 15, 30], 
+              [0, 125, 250, 375, 500], 
+              [0,0.5,1],
+              [0,1,2,3],
+              [0, 50, 100, 150, 200],
+              [0, 50, 100, 150, 200],
+              [0, 1, 2, 3],
+              [50, 175, 300],
+              ]
+    subset = range(250)
+
+    variables = [
+                'Mobility (cm$^2$  V$^{-1}$ s $^{-1}$)',
+                'Schottky barrier height (meV)',
+                'Effective density of states ($\\times 10^{13}$ cm$^{-2}$)',
+                'Peak donor density ($\\times$ 10$^{13}$ cm$^{-2}$ eV$^{-1}$)',
+                'Donor energy mid (meV below conduction band edge)', 
+                'Donor energy width (meV)',
+                'Peak acceptor band tail density ($\\times$ 10$^{13}$ cm$^{-2}$ eV$^{-1}$)',
+                'Acceptor band tail energy width (meV)',
+                ]
+
+    fig, axs = plt.subplots(1,2, figsize = (3.5, 2.25))
+    plt.subplots_adjust(left = 0.13, top = 0.71, right = 0.9, bottom = 0.175, hspace = 0.5, wspace = 0.7)
+    Ymin = Ymins[plot_idx]
+    Ymax = Ymaxs[plot_idx]
+
+    if plot_idx in [2]:
+        Ymin*=6.15e-8 / 1e13
+        Ymax*=6.15e-8 / 1e13
+    elif plot_idx in [3]:
+        Ymin/= 1e13
+        Ymax/=1e13
+    if plot_idx in [6]:
+        Ymin*=6.15e-8 / 1e13
+        Ymax*=6.15e-8 / 1e13
+    elif plot_idx in [4,5,7]:
+        Ymin *= 1000
+        Ymax *= 1000
+
+    Y_test[:,plot_idx] = unscale_vector(Y_test[:,plot_idx], Ymin, Ymax)
+    Y_pred[:,plot_idx] = unscale_vector(Y_pred[:,plot_idx], Ymin, Ymax)
+    if plot_idx == 1:
+        Y_test[:,plot_idx] = 5000 - 1000*Y_test[:,plot_idx]
+        Y_pred[:,plot_idx] = 5000 - 1000*Y_pred[:,plot_idx]
+        Ymin = 0
+        Ymax = 500
+
+    axs[0].plot(
+            Y_test[subset,plot_idx], 
+            Y_pred[subset,plot_idx], 
+            marker = 'o', 
+            ls = 'None',
+            markersize = 4,
+            color = 'k',
+            markerfacecolor = purple,
+            markeredgewidth = 0.4
+            )
+
+    axs[0].plot(
+            [-10000, 10000], 
+            [-10000, 10000], 
+            color = red, 
+            ls = '--'
+            )
+
+    axs[0].set_xlim([Ymin, Ymax])
+    axs[0].set_ylim([Ymin, Ymax])
+    axs[0].set_xticks(ticks[plot_idx])
+    axs[0].set_yticks(ticks[plot_idx])
+    errors = (Y_test[:,plot_idx] - Y_pred[:,plot_idx])
+
+    MAE = np.median(np.abs(errors))
+    std = np.std(errors)
+    binmin = -4*std
+    binmax = 4*std
+    binwidth = (binmax - binmin)/25
+    bins = np.arange(binmin, binmax, binwidth)
+    axs[1].hist(
+                errors, 
+                bins = bins,
+                color = purple,
+                edgecolor = 'k',
+                linewidth = 0.15
+                )
+
+    axs[0].set_xlabel('Actual')
+    axs[0].set_ylabel('Predicted')
+    axs[1].set_xlabel('Error')
+    axs[1].set_ylabel('Counts')
+
+    fig.text(0.5, 0.88, variables[plot_idx], ha='center', fontsize=10.5)     
+    print('\n \n Median absolute error = {} \n Standard deviation of error = {}'.format(
+                    round(MAE, 3),
+                    round(std, 3)))
+
+    plt.show()
+
+def plot_inverse(quantile, errors, data_pred_base, data_actual_base):
+    num_entries = len(errors)
+    target = int(num_entries*quantile)
+    errors = sorted(errors)
+    target_error = errors[target]
+    
+    data_pred = np.loadtxt(data_pred_base.format(target_error))
+    data_actual = np.loadtxt(data_actual_base.format(target_error))
+
+    Id_100_pred = data_pred[0]
+    Id_100_log_pred = data_pred[1]
+    Id_1000_pred = data_pred[2]
+    Id_1000_log_pred = data_pred[3]
+    
+    Id_100_actual = data_actual[0]
+    Id_100_log_actual = data_actual[1]
+    Id_1000_actual = data_actual[2]
+    Id_1000_log_actual = data_actual[3]
+    
+    ###############################################################################
+    #
+    # Plot data
+    #
+    ###############################################################################
+    
+    fig, ax1 = plt.subplots(1,1)
+    ax2 = ax1.twinx()
+    
+    start, stop, skip = 0, 32, 3
+    zorder_pred = 100001
+    zorder_actual = 10000
+    actual_OLcolor = 'k'
+    actual_Fcolor_1 = '#4dadd6'
+    pred_color_1 = '#19546d'
+    actual_Fcolor_01 = '#d64d69'
+    pred_color_01 = '#6d192a'
+    
+    
+    scale = 10**6 # A/um to uA/um conversion factor
+    V = np.linspace(
+                    cfg["data"]["Vmin"],
+                    cfg["data"]["Vmax"],
+                    cfg["data"]["n_points"]
+                    )
+    
+    
+    ax2.plot(
+            V[start:stop:skip], 
+            scale*Id_100_actual[start:stop:skip],
+            marker='o',
+            color=actual_OLcolor,
+            markerfacecolor = actual_Fcolor_01,
+            ls='None',
+            label='Vds=0.1, Actual',
+            zorder = zorder_actual
+            )
+    ax2.plot(
+            V, 
+            scale*Id_100_pred,
+            marker='None',
+            color=pred_color_01, 
+            ls='-',
+            label='Vds=0.1, Pred',
+            zorder = zorder_pred
+           )
+    
+    # Linear scale, Vds = 1.0
+    ax2.plot(
+            V[start:stop:skip], 
+            scale*Id_1000_actual[start:stop:skip],
+            marker='s',
+            color=actual_OLcolor,
+            markerfacecolor = actual_Fcolor_1,
+            ls='None',
+            label='Vds=1.0, Actual',
+            zorder = zorder_actual,
+            )
+    
+    ax2.plot(
+            V, 
+            scale*Id_1000_pred,
+            marker='None',
+            color=pred_color_1, 
+            ls='-',
+            label='Vds=1.0, Pred',
+            zorder = zorder_pred
+            )
+    
+    # Log scale, Vds = 0.1
+    ax1.semilogy(
+            V[start:stop:skip], 
+            scale*np.power(10, Id_100_log_actual)[start:stop:skip],
+            marker='o',
+            color=actual_OLcolor,
+            markerfacecolor = actual_Fcolor_01,
+            ls='None',
+            label='Log Vds=0.1, Actual',
+            zorder = zorder_actual
+            )
+    
+    ax1.semilogy(
+            V, 
+            scale*np.power(10, Id_100_log_pred),
+            marker='None',
+            color=pred_color_01, 
+            ls='-',
+            label='Log Vds=0.1, Pred',
+            zorder = zorder_pred
+            )
+    
+    # Log scale, Vds = 1.0
+    ax1.semilogy(
+            V[start:stop:skip], 
+            scale*np.power(10, Id_1000_log_actual)[start:stop:skip],
+            marker='s',
+            color=actual_OLcolor,
+            markerfacecolor = actual_Fcolor_1,
+            ls='None',
+            label='Log Vds=0.1, Actual',
+            zorder = zorder_actual
+            )
+    
+    ax1.semilogy(
+            V, 
+            scale*np.power(10, Id_1000_log_pred),
+            marker='None',
+            color=pred_color_1, 
+            ls='-',
+            label='Log Vds=0.1, Pred',
+            zorder = zorder_pred
+            )
+    
+    plt.show()
+
+def plot_forward(
+                 quantile, 
+                 errors,
+                 data_pred_base, 
+                 data_actual_base
+                 ):
+    
+    num_entries = len(errors)
+    target = int(num_entries*quantile)
+    errors = sorted(errors)
+    target_error = errors[target]
+    
+    data_pred = np.loadtxt(data_pred_base.format(target_error))
+    data_actual = np.loadtxt(data_actual_base.format(target_error))
+    
+    V = np.linspace(-5.9, 49.9, 32)
+    
+    Id_100_pred = data_pred[0]
+    Id_100_log_pred = data_pred[1]
+    Id_1000_pred = data_pred[2]
+    Id_1000_log_pred = data_pred[3]
+    
+    Id_100_actual = data_actual[0]
+    Id_100_log_actual = data_actual[1]
+    Id_1000_actual = data_actual[2]
+    Id_1000_log_actual = data_actual[3]
+
+    scale = 10**6
+    
+    fig, ax1 = plt.subplots(1,1)
+    ax2 = ax1.twinx()
+    
+    start, stop, skip = 0, 32, 3
+    
+    zorder_pred = 10001
+    zorder_actual = 10000
+    
+    actual_OLcolor = 'k'
+    
+    actual_Fcolor_1 = '#4dadd6'
+    pred_color_1 = '#19546d'
+    
+    actual_Fcolor_01 = '#d64d69'
+    pred_color_01 = '#6d192a'
+    
+    # Linear scale, Vds = 0.1
+    ax2.plot(
+        V[start:stop:skip], 
+        scale*Id_100_actual[start:stop:skip],
+        marker='o',
+        color=actual_OLcolor,
+        markerfacecolor = actual_Fcolor_01,
+        ls='None',
+        label='Vds=0.1, Actual',
+        zorder = zorder_actual
+        )
+    ax2.plot(
+        V, 
+        scale*Id_100_pred,
+        marker='None',
+        color=pred_color_01, 
+        ls='-',
+        label='Vds=0.1, Pred',
+        zorder = zorder_pred
+       )
+    
+    # Linear scale, Vds = 1.0
+    ax2.plot(
+        V[start:stop:skip], 
+        scale*Id_1000_actual[start:stop:skip],
+        marker='s',
+        color=actual_OLcolor,
+        markerfacecolor = actual_Fcolor_1,
+        ls='None',
+        label='Vds=1.0, Actual',
+        zorder = zorder_actual,
+        )
+    
+    ax2.plot(
+        V, 
+        scale*Id_1000_pred,
+        marker='None',
+        color=pred_color_1, 
+        ls='-',
+        label='Vds=1.0, Pred',
+        zorder = zorder_pred
+        )
+    
+    # Log scale, Vds = 0.1
+    ax1.semilogy(
+        V[start:stop:skip], 
+        scale*np.power(10, Id_100_log_actual)[start:stop:skip],
+        marker='o',
+        color=actual_OLcolor,
+        markerfacecolor = actual_Fcolor_01,
+        ls='None',
+        label='Log Vds=0.1, Actual',
+        zorder = zorder_actual
+        )
+    
+    ax1.semilogy(
+        V, 
+        scale*np.power(10, Id_100_log_pred),
+        marker='None',
+        color=pred_color_01, 
+        ls='-',
+        label='Log Vds=0.1, Pred',
+        zorder = zorder_pred
+        )
+    
+    # Log scale, Vds = 1.0
+    ax1.semilogy(
+        V[start:stop:skip], 
+        scale*np.power(10, Id_1000_log_actual)[start:stop:skip],
+        marker='s',
+        color=actual_OLcolor,
+        markerfacecolor = actual_Fcolor_1,
+        ls='None',
+        label='Log Vds=0.1, Actual',
+        zorder = zorder_actual
+        )
+    
+    ax1.semilogy(
+        V, 
+        scale*np.power(10, Id_1000_log_pred),
+        marker='None',
+        color=pred_color_1, 
+        ls='-',
+        label='Log Vds=0.1, Pred',
+        zorder = zorder_pred
+        )
+    
+    plt.show()
+    plt.close()
