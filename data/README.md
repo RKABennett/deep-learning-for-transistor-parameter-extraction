@@ -1,7 +1,7 @@
 ## About the data
 The data provided in [data/raw](data/raw) is raw data from Sentaurus simulations. 
 Specifically, we have 26,000 Sentaurus simulations, with eight fitting parameters
-chosen between random values as described in [our preprint](https://arxiv.org/abs/2507.05134).
+chosen between random values as described in [our papper](https://spj.science.org/doi/10.34133/research.1103).
 
 ## Data layout
 Each directory within [data/raw](data/raw) corresponds to a single transistor and 
